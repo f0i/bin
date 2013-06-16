@@ -1,0 +1,50 @@
+#!/usr/bin/env sh
+
+# Den eigenen LAN-Port als Switch verwenden (Subnetze mit iptables)
+# Author: Aaron Mueller <mail@aaron-mueller.de>
+# Part of the adventskalender 2012
+# http://advent2012.aaron-mueller.de/
+# http://advent.indeedgeek.de/
+
+# Ich habe meinen Desktop-PC zuhause über WLAN mit dem Router verbunden, um nicht
+# noch mehr Kabel quer durch die Wohnung zu ziehen. Wenn ich aber ein Gerät
+# (z.B. den Raspberry Pi oder mein Notebook mit der halb defekten WLAN-Karte)
+# ans Netzwerk hängen möchte, muss ich dennoch ein Patchkabel durch die Wohnung
+# werfen. Wie praktisch wäre es denn, wenn ich einfach die freie RJ45-Buchse
+# an meinem Rechner nutzen könnte, um ein eigenes kleines Subnetz aufzuspannen?
+# Der Internet-Traffic soll natürlich an den router weitergeleitet werden.
+
+# Mit iptables und einer Kernel-Option ist das unter Linux erschreckend einfach
+# zu lösen. Zuerst muss man IP Forwarding im Kernel aktivieren. Hierzu schreibt
+# man eine 1 in eine "Datei" im /proc Verzeichnis. Anschließend muss man die
+# eigene ungenutzte Netzwerkkarte konfigurieren und in ein Subnetz legen. Das
+# geht wie gewohnt am einfachsten mit ifconfig.
+#
+# Mit iptables werden nun drei Regeln definiert. Die erste ist eine MASQUERADE
+# Regel, die dafür sorgt dass mein Rechner NAT (Adressumschreibung) macht. Dies
+# ist wichtig für den Traffic fürs Internet. Die zweite Regel routet allen
+# Traffic der auf eth0 ankommt weiter an wlan0 (also die Verbindung die am
+# Router hängt). Die letzte Regel macht das gleiche für aufgenommene Verbindungen
+# in die andere Richtung. Hier wird der Traffic, der für Clients von eth0 bestimmt
+# sind an dieses Interface weitergeleitet.
+#
+# Wer es ganz komfortabel haben möchte, kann noch einen DHCP-Dienst starten, um
+# automatisch IPs für die Geräte an eth0 zu verteilen. Ich habe dnsmasq eingesetzt,
+# da das Programm recht klein ist und sich einfach konfigurieren lässt.
+
+# Enable IP forwarding in the kernel
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+# Set up the ethernet port
+ifconfig eth0 10.0.0.1 netmask 255.255.255.0
+
+# Forward all traffic from the ethernet port to the wlan interface
+# and forward all related and established traffic back to the ethernet
+# port.
+iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
+iptables -A FORWARD -i eth0 -o wlan0 -j ACCEPT
+iptables -A FORWARD -i wlan0 -o eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# Start the DHCP server on eth0
+rc.d start dnsmasq
+

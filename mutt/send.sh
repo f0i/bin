@@ -93,6 +93,6 @@ else
 fi
 
 # Send the mail
-(echo "$header" && echo "$body") | /usr/bin/msmtp -a cube
+(echo "$header" && echo "$body") | /usr/bin/msmtp $*
 
 exit $?

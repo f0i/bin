@@ -5,7 +5,7 @@
 # The alternative html message must be included as an atachment of the mail
 # with the filename defined in $altfile.
 #
-# Inspired by script of David Leadbeater
+# Inspired by script of David Leadbeater (github:dgl)
 # https://dgl.cx/2009/03/html-mail-with-mutt-using-markdown
 #
 ##
@@ -44,7 +44,7 @@ then
     # Create new boundry for content
     delim=`tr -dc "a-zA-Z0-9" < /dev/urandom | head -c 16`
     mkdir -p /tmp/mutt-$delim
-    cd /tmp/mutt-$delim
+    cd /tmp/mutt-$delim || exit 1
 
     # Split the message into the original files
     echo "$body" > body
@@ -60,7 +60,7 @@ then
     cat bodypart01 | tail -n +2 >> body
 
     # if files don't exist, something went wront
-    rm bodypart00 bodypart01 || exit 1
+    rm bodypart00 bodypart01 || exit 2
 
     # find the part with alternative html message
     # give priority to the latest file
@@ -84,6 +84,9 @@ then
     cat bodypart* >> body
     rm bodypart*
     body=`cat body`
+    rm body
+    cd ..
+    rmdir mutt-$delim
   else
     header=`echo "$header" | sed 's/^\(Content-Type: multipart.\)mixed/\1alternative/'`
   fi

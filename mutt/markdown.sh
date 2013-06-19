@@ -6,7 +6,7 @@
 #
 # Dependencies: markdown
 #
-# Inspired by script of David Leadbeater
+# Inspired by script of David Leadbeater (github:dgl)
 # https://dgl.cx/2009/03/html-mail-with-mutt-using-markdown
 #
 ##
@@ -17,6 +17,7 @@
 ##
 
 file="/tmp/html-markdown-alternative.html"
+preview='chromium'
 
 # Create hader with style
 cat > $file <<EOF
@@ -43,3 +44,7 @@ cat >> $file <<EOF
 </body>
 </html>
 EOF
+
+# Preview the file
+($preview $file &)
+

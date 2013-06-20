@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+#
 # Script to send html mails with the mutt mail client.
 #
 # The alternative html message must be included as an atachment of the mail

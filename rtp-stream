@@ -1,0 +1,36 @@
+#!/bin/bash
+#
+# Script to create a rtp stream.
+#
+##
+# Copyright (c) Martin Sigloch <copyright@f0i.de>
+# This file is part of github:f0i/bin
+# As long as you retain this notice you can do whatever you want with it.
+# This code and information are provided without warranty of any kind.
+##
+
+if [ $# -lt 1 ]
+then
+  echo "usage: $0 <media-file> [<IP>] [<port>]"
+  exit 1
+fi
+
+if [ $# -lt 2 ]
+then
+  IP=239.35.10.4
+else
+  IP=$2
+fi
+
+if [ $# -lt 3 ]
+then
+  port=10000
+else
+  port=$3
+fi
+
+echo
+echo "Start streaming to \"tpp://$IP:$port\""
+echo
+vlc $1 --sout "#transcode{vcodec=h264,vb=0,scale=1.00,acodec=mpga,ab=128,channels=2,samplerate=44100}:duplicate{dst=rtp{dst=$IP,port=$port,mux=ts,ttl=1},dst=display}" \
+  --sout-keep --intf dummy --repeat 

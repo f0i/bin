@@ -4,7 +4,7 @@
 #
 # Destination file is definde in $file.
 #
-# Dependencies: markdown
+# Dependencies: pandoc
 #
 # Inspired by script of David Leadbeater (github:dgl)
 # https://dgl.cx/2009/03/html-mail-with-mutt-using-markdown
@@ -38,7 +38,7 @@ cat > $file <<EOF
 EOF
 
 # get body of message and generate html
-cat $1 | egrep "^$" -A 99999 | markdown >> $file
+cat $1 | egrep "^$" -A 99999 | pandoc -r markdown -w html --ascii >> $file
 
 cat >> $file <<EOF
 </body>

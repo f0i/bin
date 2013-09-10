@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+#
+# Replace leading double spaces with 4 spaces.
+#
+# Example:
+#   cat ../README.md | 2to4spaces | pandoc -r markdown -w html --ascii >> index.html
+#
+##
+# Copyright (c) Martin Sigloch <copyright@f0i.de>
+# This file is part of github:f0i/bin
+# As long as you retain this notice you can do whatever you want with it.
+# This code and information are provided without warranty of any kind.
+##
+sed 's/^\(\(\ \ \)*\)/\1\1/'

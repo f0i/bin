@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Add some newlines and clear screen (without deleting console output)
+# Add some newlines
 #
 ##
 # Copyright (c) Martin Sigloch <copyright@f0i.de>
@@ -9,11 +9,7 @@
 # This code and information are provided without warranty of any kind.
 ##
 
-LINES=`tput lines`
-
-for i in `seq -20 $LINES`
+for i in `seq 0 20`
 do
   echo ""
 done
-
-clear

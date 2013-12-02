@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+while !(line=STDIN.gets).nil?
+  line.gsub(/[\s.,"()'\/!?0-9-]+/, ' ').split.each do |x|
+    x = x.gsub(/^[\s ]*/, '').gsub(/[\s ]*$/, '') # trim spaces and &nbsp;
+    next if x == ""
+    print x
+    print "\n"
+  end
+end

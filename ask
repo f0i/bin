@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# Ask a yes/no question.
+#
+# Example:
+#   ask Run script? && ./script.sh
+#
+##
+# Copyright (c) Martin Sigloch <copyright@f0i.de>
+# This file is part of github:f0i/bin
+# As long as you retain this notice you can do whatever you want with it.
+# This code and information are provided without warranty of any kind.
+##
+
+while true; do
+  if [ "$1" == "" ]; then
+    echo -n "Continue [Y,n]? "
+  else
+    echo -n "$@ [Y,n] "
+  fi
+  read yn
+  case $yn in
+    [Yy]* ) exit 0;;
+    ""    ) exit 0;;
+    [Nn]* ) exit 1;;
+    * ) echo "Please answer yes or no.";;
+  esac
+done

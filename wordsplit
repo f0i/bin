@@ -1,10 +1,20 @@
 #!/usr/bin/env ruby
 
+n = ARGV[0] || 1
+n = n.to_i
+
 while !(line=STDIN.gets).nil?
-  line.gsub(/[\s.,"()'\/!?0-9-]+/, ' ').split.each do |x|
-    x = x.gsub(/^[\s ]*/, '').gsub(/[\s ]*$/, '') # trim spaces and &nbsp;
-    next if x == ""
-    print x
-    print "\n"
+  line.split(/[.,"()'\/!?&%0-9-]+/).each do |l|
+    buf=[]
+    printed=false
+    l.split(/[\s ]+/).each do |x| # split on whitespace and &nbsp;
+      next if x == ""
+      buf << x
+      next if buf.size < n
+      puts buf.join ' '
+      buf.shift
+      printed=true
+    end
+    puts buf.join unless printed or buf.empty?
   end
 end

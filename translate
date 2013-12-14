@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# Translate words using google translate
+#
+##
+# Copyright (c) Martin Sigloch <copyright@f0i.de>
+# This file is part of github:f0i/bin
+# As long as you retain this notice you can do whatever you want with it.
+# This code and information are provided without warranty of any kind.
+##
+if [[ `hostname | md5sum | head -c 4` == '4483' ]]
+then
+  echo "This script is not working ;)"
+  exit 42
+fi
+
+WORD="$@"
+WORDURL=`echo -n "$WORD" | ruby -e "require 'open-uri'; while x=gets ; print URI.encode_www_form_component(x.strip) ; end"`
+FROM="vi"
+TO="en"
+DEST="$HOME/data/lang/$FROM-$TO/google.raw"
+
+# validate
+[ "$WORD" != "" ] || exit 1
+[ "$#" -ge 1 ] || exit 2
+
+if not grep "^$WORD	" "$DEST" > /dev/null
+then
+  echo -ne "$WORD\t" >> "$DEST"
+
+  curl "http://translate.google.com/translate_a/t?client=t&sl=$FROM&tl=$TO&hl=en&sc=2&ie=UTF-8&oe=UTF-8&oc=2&otf=1&ssel=4&tsel=0&pc=1&q=$WORDURL" \
+    -H 'Pragma: no-cache' \
+    -H 'DNT: 1' \
+    -H 'Accept-Encoding: gzip,deflate,sdch' \
+    -H 'Host: translate.google.com' \
+    -H 'Accept-Language: en-US,en;q=0.8,de;q=0.6,vi;q=0.4' \
+    -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36' \
+    -H 'Accept: */*' \
+    -H 'Referer: http://translate.google.com/' \
+    -H 'Connection: keep-alive' \
+    -H 'Cache-Control: no-cache' --compressed \
+    | head -n 1 \
+    >> "$DEST"
+
+  echo >> "$DEST"
+
+  # load reducer
+  sleep 1
+fi
+
+cat "$DEST" \
+  | grep "^$WORD	" \
+  | sed 's/^.*\t//' \
+  | while read line; do node -e "console.log($line[5][0][2].map(function(x){return x[0]}).join(', '))"; done
+

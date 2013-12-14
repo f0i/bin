@@ -11,5 +11,5 @@
 
 for i in `seq 0 20`
 do
-  echo ""
+  echo
 done

@@ -13,5 +13,14 @@
 sleep 1
 
 # lock and suspend
-slock & sudo s2ram
+slock &
+sudo s2ram
 
+# after wakeup check if lid is open or go back to sleep
+sleep .5
+while grep close /proc/acpi/button/lid/LID/state
+do
+  sleep 15
+  sudo s2ram || exit 1
+  sleep .5
+done

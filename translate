@@ -8,12 +8,6 @@
 # As long as you retain this notice you can do whatever you want with it.
 # This code and information are provided without warranty of any kind.
 ##
-if [[ `hostname | md5sum | head -c 4` == '4483' ]]
-then
-  echo "This script is not working ;)"
-  exit 42
-fi
-
 WORD="$@"
 WORDURL=`echo -n "$WORD" | ruby -e "require 'open-uri'; while x=gets ; print URI.encode_www_form_component(x.strip) ; end"`
 FROM="vi"
@@ -51,5 +45,5 @@ fi
 cat "$DEST" \
   | grep "^$WORD	" \
   | sed 's/^.*\t//' \
-  | while read line; do node -e "console.log($line[5][0][2].map(function(x){return x[0]}).join(', '))"; done
+  | while read line; do node -e "console.log($line[5].map(function(a){return a[2].map(function(x){return x[0]}).join(', ')}).join('\n'))"; done
 

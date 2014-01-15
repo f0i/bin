@@ -25,7 +25,7 @@ then
   exit 1
 fi
 
-if [[ "$file" == "ls" ]]
+if [[ "$file" == "ls" ]] || [[ "$file" == "list" ]]
 then
   cd "$MD_FILE_PATH"
   tree

@@ -29,7 +29,24 @@ unit="days"
 
 file="$TODAY_LOG_PATH/`date -d "$days $unit 12:00" +%Y/%m/%d`$postfix"
 
-mkdir -p `dirname $file` || exit 1
-vim "$file"
+cd "$TODAY_LOG_PATH"
 
-wq
+case "$1" in
+  "ls"|"list")
+    tree
+    ;;
+  "commit")
+    git add . \
+      && git commit -v
+    ;;
+  "push")
+    git push
+    ;;
+  *)
+    mkdir -p `dirname $file` \
+      && vim "$file" \
+      && wq
+    ;;
+esac
+
+exit $?

@@ -25,16 +25,26 @@ then
   exit 1
 fi
 
-if [[ "$file" == "ls" ]] || [[ "$file" == "list" ]]
-then
-  cd "$MD_FILE_PATH"
-  tree
-  exit $?
-fi
-
 file="$MD_FILE_PATH/$folder/${file}.md"
 
-mkdir -p `dirname $file` || exit 1
-vim "$file"
+cd "$MD_FILE_PATH"
 
-wq
+case "$1" in
+  "ls"|"list")
+    tree
+    ;;
+  "commit")
+    git add . \
+      && git commit -v
+    ;;
+  "push")
+    git push
+    ;;
+  *)
+    mkdir -p `dirname $file` \
+      && vim "$file" \
+      && wq
+    ;;
+esac
+
+exit $?

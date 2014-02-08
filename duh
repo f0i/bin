@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Get ordered list of file/folder sizes.
+#
+# Example:
+#   duh
+#   duha
+#   duha -v
+#   duh ~/stuff/
+#
+##
+# Copyright (c) Martin Sigloch <copyright@f0i.de>
+# This file is part of github:f0i/bin
+# As long as you retain this notice you can do whatever you want with it.
+# This code and information are provided without warranty of any kind.
+##
+
+[[ "$0" == *a ]] \
+  && hidden='.[!.]*'
+
+[[ -d "$1" ]] && cd "$1" && shift
+
+ls $hidden > /dev/null 2>&1 || hidden=""
+
+[[ "$1" == \-v* ]] \
+  && (du -hs $hidden * ; echo -e "\n--------\n")
+
+
+du -hs $hidden * \
+  | sort -h
+du -hs .
+

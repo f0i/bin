@@ -35,7 +35,8 @@ case "$1" in
     ;;
   "commit")
     git add . \
-      && git commit -v
+      && git commit -v \
+      && git push
     ;;
   "push")
     git push

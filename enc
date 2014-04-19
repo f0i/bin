@@ -9,10 +9,10 @@
 # This code and information are provided without warranty of any kind.
 ##
 
-if ( mount | grep ${PWD}/enc )
+if ( mount | grep "${PWD}/enc" )
 then
-  fusermount -u ${PWD}/enc
+  fusermount -u "${PWD}/enc"
 else
-  encfs ${PWD}/.enc ${PWD}/enc
+  encfs "${PWD}/.enc" "${PWD}/enc"
 fi
 

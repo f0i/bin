@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+# URL encode a string
+#
 # Originaly from Chris Down at gits:cdown/1163649
 #
 # Example:
@@ -20,9 +22,6 @@ for (( i = 0; i < length; i++ )); do
   case $c in
     [a-zA-Z0-9.~_-])
       printf "$c"
-      ;;
-    " ")
-      printf +
       ;;
     *)
       printf '%%%X' "'$c"

@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# Decode a URL encoded string
+#
 # Based on stackoverflow answer by marco
 # https://stackoverflow.com/questions/5082149
 #

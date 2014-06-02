@@ -1,0 +1,151 @@
+#!/bin/sh
+#
+# Create a html file with thumbs of all movies in a folder
+#
+##
+# Based on pr0nidx.sh by Helmchyn 
+# under the terms of the GPL v2 and any later version
+# refactored and extended by Martin Sigloch <copyright@f0i.de>
+##
+
+# Configuration
+table_width=5 # number of movies to show in one row
+thumb_height=75
+thumb_width=100
+thumbs_per_file=4
+thumbs_per_row=2
+bgcolor="#000000" # background of html page
+
+
+# Beginning of script
+if [ -z "$1" ];then
+  dir="movies/"
+else
+  dir="$1"
+fi
+
+echo "$dir" | grep '/$' || dir="$dir/"
+idxdir=`echo ."$dir"_idx |sed 's/\///g' |sed 's/ /_/g'`
+idxhtml=`echo "$dir.html" |sed 's/\///g'`
+#echo Indexdir: $idxdir
+if [ -d "$idxdir" ]; then
+  echo "indexdir already exists"
+else
+  mkdir "$idxdir"
+  echo " indexdir has been created"
+fi
+
+rm -f "$idxhtml"
+#echo Old index files have been removed
+echo Stand by while creating new snapshots...
+
+#Header of HTML file
+echo "<html>" >"$idxhtml"
+echo "  <head><title>$dir</title></head>" >>"$idxhtml"
+echo "  <body bgcolor=$bgcolor>" >>"$idxhtml"
+echo "  <table width=100%>" >>"$idxhtml"
+
+#generate $thumbs_per_file Snapshots of each movie and write them into HTML file
+cnt=0
+find "$dir" -type f \
+  -iname '*.mkv' \
+  -o -iname '*.mp4' \
+  -o -iname '*.wmv' \
+  -o -iname '*.flv' \
+  -o -iname '*.webm' \
+  -o -iname '*.mov' \
+  -o -iname '*.m2ts' \
+  -o -iname '*.avi' | \
+  grep -vi sample | \
+  grep -vi alice | \
+  cat > /tmp/movieindex.tmp
+
+while read file
+do
+  (( cnt++ ))
+  echo -n $cnt: $file
+
+  # get length 
+  length=`mplayer "$file" -identify -frames 0 -vo null 2>/dev/null | grep "ID_LENGTH=" | cut -d"=" -f2 | cut -d"." -f1`
+  (( time_steps = length / ( thumbs_per_file + 1 ) ))
+
+  # get width and height
+  real_width=`mplayer "$file" -identify -frames 0 -vo null 2>/dev/null | grep "ID_VIDEO_WIDTH=" | cut -d"=" -f2 | cut -d"." -f1`
+  real_height=`mplayer "$file" -identify -frames 0 -vo null 2>/dev/null | grep "ID_VIDEO_HEIGHT=" | cut -d"=" -f2 | cut -d"." -f1`
+
+  echo -n " length: $length height: $real_height width: $real_width"
+  (( width = real_width / ( real_height / thumb_height ) ))
+  height=75
+  if [ -n "$width" ] && [ "$width" -gt 100 ]
+  then
+    (( height = real_height / ( real_width / thumb_width ) ))
+    width=100
+  fi
+
+  name=`basename "$file"`
+  # extract 4 thumbnails
+  thumb_time=0
+
+  for thumb_count in `seq 1 $thumbs_per_file`
+  do
+    (( thumb_time = thumb_time + time_steps ))
+
+    echo -n " $thumb_count:$thumb_time"
+
+    timeout 5 mplayer "$file" -ss "$thumb_time" -frames 3 -vf "scale=$width:$height" -ao null -vo jpeg > /dev/null 2>&1 < /dev/null
+
+    if [ -f 00000002.jpg ]
+    then
+      cp 00000002.jpg "$idxdir/$name-$thumb_count.jpg" || echo -n .
+    else
+      cp 00000001.jpg "$idxdir/$name-$thumb_count.jpg" || echo -n .
+    fi
+    rm 000000??.jpg
+  done
+  echo
+
+  #insert linebreaks for movie titles
+  html_name=`basename "$file" |sed 's/.\{20\}/&<br>/g'`
+  url_file=`urlencode "$file"`
+
+  #Part of the HTML file
+  if [ `expr $cnt % $table_width` -eq 1 ]
+  then
+    echo "<tr><td>" >>"$idxhtml"
+  fi
+  echo "<table align=center><tr>" >>"$idxhtml"
+
+  for fcnt in `seq 1 $thumbs_per_file`
+  do
+    echo "<td><img src=\"$idxdir/$name-$fcnt.jpg\" /></td>" >>"$idxhtml"
+    if [ `expr $fcnt % $thumbs_per_row` -eq 0 ]
+    then
+      echo "</tr><tr>" >>"$idxhtml"
+    fi
+  done
+
+  echo "</tr></table><table align=center>" >>"$idxhtml"
+  echo "<tr><td><p align=center>" >>"$idxhtml"
+  echo "<a href=\"$url_file\">" >>"$idxhtml"
+  echo "$html_name" >>"$idxhtml"
+  echo "</a></p></td></tr></table></td>" >>"$idxhtml"
+  if [ `expr "$cnt" % $table_width` -eq 0 ]
+  then
+    echo "</tr>" >>"$idxhtml"
+  else
+    echo "<td>" >>"$idxhtml"
+  fi
+
+done < /tmp/movieindex.tmp
+
+#Tail of the HTML file
+if [ `expr $cnt % $table_width` -ne 0 ]
+then
+  echo -e "    </td>" >>"$idxhtml"
+  echo -e "  </tr>" >>"$idxhtml"
+fi
+echo "  </table>" >>"$idxhtml"
+echo "  </body>" >>"$idxhtml"
+echo "</html>" >>"$idxhtml"
+
+echo done

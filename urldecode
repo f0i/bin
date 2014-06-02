@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# Based on stackoverflow answer by marco
+# https://stackoverflow.com/questions/5082149
+#
+# Example:
+#   urldecode https%3A%2F%2Ff0i.de
+#
+##
+# Copyright (c) Martin Sigloch <copyright@f0i.de>
+# This file is part of github:f0i/bin
+# As long as you retain this notice you can do whatever you want with it.
+# This code and information are provided without warranty of any kind.
+##
+
+encoded="$*"
+printf "%b\n" "${encoded//%/\\x}"

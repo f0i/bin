@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Originaly from Chris Down at gits:cdown/1163649
+#
+# Example:
+#   urlencode "https://f0i.de"
+#
+##
+# Copyright (c) Martin Sigloch <copyright@f0i.de>
+# This file is part of github:f0i/bin
+# As long as you retain this notice you can do whatever you want with it.
+# This code and information are provided without warranty of any kind.
+##
+
+unencoded="$*"
+length="${#unencoded}"
+echo $length
+for (( i = 0; i < length; i++ )); do
+  c="${unencoded:i:1}"
+  case $c in
+    [a-zA-Z0-9.~_-])
+      printf "$c"
+      ;;
+    " ")
+      printf +
+      ;;
+    *)
+      printf '%%%X' "'$c"
+      ;;
+  esac
+done
+
+# add linebreak
+echo

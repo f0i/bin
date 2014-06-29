@@ -19,7 +19,7 @@ while true; do
     echo -n "$@ [Y,n] "
   fi
   read yn
-  case $yn in
+  case "$yn" in
     [Yy]* ) exit 0;;
     ""    ) exit 0;;
     [Nn]* ) exit 1;;

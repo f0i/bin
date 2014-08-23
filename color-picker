@@ -20,10 +20,12 @@ class RubyApp < Gtk::Window
     super
 
     dialog = Gtk::ColorSelectionDialog.new title: "Select a color"
+    dialog.color_selection.current_color = Gdk::Color.parse("#008000")
     response = dialog.run
 
     if response == Gtk::ResponseType::OK
-      puts to_hex dialog.color_selection.current_rgba
+      print to_hex(dialog.color_selection.current_rgba).strip
+      puts unless ARGV.include? "-n"
       dialog.destroy
       exit 0
     end

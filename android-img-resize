@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Scale down Android images from xxhdpi resource folder.
+#
+# Example:
+#   cd myproject/src/main/res
+#   android-img-resize
+#
+##
+# Copyright (c) Martin Sigloch <copyright@f0i.de>
+# This file is part of github:f0i/bin
+# As long as you retain this notice you can do whatever you want with it.
+# This code and information are provided without warranty of any kind.
+##
+
+base="drawable"
+ask "default orientation (y) or landscape (n)?" \
+  || base="drawable-land"
+
+fromdir="$base-xxhdpi"
+
+echo "Files in $fromdir:"
+ls "$fromdir" || exit 1
+
+mkdir -p "$base-xhdpi"
+mkdir -p "$base-hdpi"
+mkdir -p "$base-mdpi"
+
+files=`ls "$fromdir" | grep -i -e "\.png$" -e "\.jpg"`
+for file in $files
+do
+  ask "convert $file?" \
+    && convert -resize 66.6666% "$fromdir/$file" "$base-xhdpi/$file" \
+    && convert -resize 50% "$fromdir/$file" "$base-hdpi/$file" \
+    && convert -resize 33.3333% "$fromdir/$file" "$base-mdpi/$file"
+done
+

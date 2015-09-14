@@ -1,9 +1,117 @@
-#!/bin/bash
+#!/usr/bin/env ruby
+#
+# Time tracking
+#
 
-date=`date --iso`
+require 'sqlite3'
 
-cat ~/timetracking \
-  | grep "$date" \
-  | grep -e sh -e www \
-  | wc -l \
-  | xargs calc 1/4/60*
+DBFILE = "#{Dir.home}/timetracking.db"
+
+def db
+  @db ||= SQLite3::Database.open DBFILE
+end
+
+def init
+  db.execute "CREATE TABLE IF NOT EXISTS workspaces(id INTEGER PRIMARY KEY, name TEXT, start TEXT)"
+  db.execute "CREATE TABLE IF NOT EXISTS projects(id INTEGER PRIMARY KEY, name TEXT, start TEXT)"
+end
+
+def track_workspace name=nil, time=nil
+  time ||= Time.now
+  name ||= `get-awesome-workspace`.strip
+  db.execute "INSERT INTO workspaces(name, start) VALUES (?, ?)", [name, time_to_s(time)]
+  puts name
+end
+
+def track_project name, time=nil
+  time ||= Time.now
+  db.execute "INSERT INTO projects(name, start) VALUES (?, ?)", [name, time_to_s(time)]
+  puts "switch to project '#{name}' at #{time_to_s time}"
+end
+
+def dump
+  out = ["workspaces:"]
+  out += db.execute "SELECT start, name FROM workspaces"
+  out << "projects:"
+  out += db.execute "SELECT start, name FROM workspaces"
+end
+
+def by_day since=nil, endtime=nil
+  since ||= Time.now.strftime "%Y-%m-%d"
+  endtime ||= Time.now.strftime "%Y-%m-%d"
+  db.execute "SELECT name, count(id) FROM workspaces WHERE SUBSTR(start, 1, #{since.length}) >= ? AND SUBSTR(start, 1, #{since.length}) <= ? group by name", since, endtime
+end
+
+def report since=nil, endtime=nil
+  since ||= Time.now.strftime "%Y-%m-%d"
+  endtime ||= Time.now.strftime "%Y-%m-%d"
+
+  puts "Time #{since} - #{endtime}:"
+
+  by_day(since, endtime).each do |x|
+    seconds = x[1] * 15
+    hours = seconds / (60*60)
+    seconds %= (60*60)
+    minutes = seconds / 60
+    seconds %= 60
+    space = 8 - x[0].length
+    space = space > 0 ? (" " * space) : ""
+    print " ", x[0], ": ", space, hours, ":", minutes, ":", seconds, "\n"
+  end
+end
+
+
+def all_projects since=""
+  db.execute "select start, name from projects where start >= ?", since.to_s
+end
+
+def time_to_s time
+  time.strftime '%Y-%m-%d %H:%M:%S'
+end
+
+def import file
+  begin
+    db.transaction
+    File.read(file).split("\n").each do |line|
+      time, name = line.split /: /
+      puts time
+      time = Time.parse time
+      puts time
+      track_workspace name, time
+    end
+    db.commit
+  rescue SQLite3::Exception => e
+    puts "Exception occurred"
+    puts e
+    db.rollback
+  end
+end
+
+exit 1 if ARGV.empty?
+
+command = ARGV[0]
+case command
+when "init"
+  init
+when "dump"
+  dump.each do |x|
+    print x
+    puts
+  end
+when "import"
+  import ARGV[1]
+when "ls"
+  report ARGV[1], ARGV[2]
+when "auto"
+  loop do
+    track_workspace
+    sleep 2 # to not log multiple times in one second
+    delay = 15 - (Time.now.to_i % 15)
+    sleep delay
+  end
+else
+  track_project ARGV.join " "
+end
+
+db.close
+

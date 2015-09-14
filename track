@@ -1,0 +1,9 @@
+#!/bin/bash
+
+date=`date --iso`
+
+cat ~/timetracking \
+  | grep "$date" \
+  | grep -e sh -e www \
+  | wc -l \
+  | xargs calc 1/4/60*

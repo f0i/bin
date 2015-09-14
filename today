@@ -27,7 +27,8 @@ unit="days"
 [[ "$days" =~ [0-9][\.-] ]] && unit=""
 [[ "$postfix" == "" ]] || postfix=".$postfix"
 
-file="$TODAY_LOG_PATH/`date -d "$days $unit 12:00" +%Y/%m/%d`$postfix"
+date=`date -d "$days $unit 12:00" +%Y/%m/%d`
+file="$TODAY_LOG_PATH/$date$postfix"
 
 cd "$TODAY_LOG_PATH"
 
@@ -45,7 +46,7 @@ case "$1" in
     ;;
   *)
     mkdir -p `dirname $file` \
-      && vim "$file" \
+      && $EDITOR "./$date$postfix" \
       && wq
     ;;
 esac

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cat <<'EOF' | awesome-client | sed 's/[^"]*.\(.*\)"[^"]*/\1/' 
+
+awful = require "awful"
+tag = awful.tag.selected(1).name
+
+return tag
+
+EOF

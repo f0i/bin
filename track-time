@@ -1,0 +1,17 @@
+#!/bin/bash
+
+while :
+do
+
+  if pgrep slock
+  then
+    workspace="slock"
+  else
+    workspace="$(get-awesome-workspace)"
+  fi
+
+  hamster track $workspace
+  echo "$(date --iso-8601=seconds): $workspace" | tee -a ~/timetracking
+
+  sleep 15 || break
+done

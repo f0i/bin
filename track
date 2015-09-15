@@ -3,9 +3,12 @@
 # Time tracking
 #
 # Example:
-#   track init # initialize db
-#   track auto # start tracking
-#   track ls   # show log
+#   track init                 # initialize db
+#   track auto                 # start tracking
+#   track ls                   # show log
+#   track "my project"         # switch to "my project"
+#   track projects             # list projects
+#   track "delete project" id  # remove project entry
 #
 ##
 # Copyright (c) Martin Sigloch <copyright@f0i.de>
@@ -50,7 +53,7 @@ end
 def by_day since=nil, endtime=nil
   since ||= Time.now.strftime "%Y-%m-%d"
   endtime ||= Time.now.strftime "%Y-%m-%d"
-  db.execute "SELECT name, count(id) FROM workspaces WHERE SUBSTR(start, 1, #{since.length}) >= ? AND SUBSTR(start, 1, #{since.length}) <= ? group by name", since, endtime
+  db.execute "SELECT name, count(id) FROM workspaces WHERE SUBSTR(start, 1, #{since.length}) >= ? AND SUBSTR(start, 1, #{endtime.length}) <= ? group by name", since, endtime
 end
 
 def report since=nil, endtime=nil
@@ -71,9 +74,19 @@ def report since=nil, endtime=nil
   end
 end
 
+def untrack_project id
+  db.execute "DELETE FROM projects WHERE id = ?", id
+end
 
-def all_projects since=""
-  db.execute "select start, name from projects where start >= ?", since.to_s
+def projects since=nil
+  since ||= Time.now.strftime "%Y-%m-%d"
+  ps = db.execute "SELECT start, name, id FROM projects WHERE SUBSTR(start, 1, #{since.length}) >= ? ORDER BY start DESC", since
+end
+
+def list_projects since=nil
+  projects(since).each do |p|
+    print p[2], ": ", p[0], ": ", p[1], "\n"
+  end
 end
 
 def time_to_s time
@@ -113,15 +126,32 @@ when "import"
   import ARGV[1]
 when "ls"
   report ARGV[1], ARGV[2]
+when /^project/
+  list_projects ARGV[1]
 when "auto"
   loop do
-    track_workspace
+    begin
+      track_workspace
+    rescue Exception => e
+      puts "ERROR", e.message
+      `notify-send "Could not track" "#{e.message.gsub(/[^a-zA-Z0-9 .,-]/, "")}"`
+    end
     sleep 2 # to not log multiple times in one second
     delay = 15 - (Time.now.to_i % 15)
     sleep delay
   end
+when "untrack"
+  print "type YES to delete project ", ARGV[1], ": "
+  if STDIN.readline.strip == "YES"
+    untrack_project ARGV[1]
+    puts "remaining projects:"
+    list_projects ""
+  else
+    puts "canceled"
+  end
 else
-  track_project ARGV.join " "
+  time = Time.parse ARGV[1] if ARGV[1]
+  track_project ARGV[0], time
 end
 
 db.close

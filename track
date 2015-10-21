@@ -2,13 +2,27 @@
 #
 # Time tracking
 #
+# Usage:
+#   track init                        # initialize db
+#   track auto                        # start tracking
+#   track projects <since> <limit>    # list projects
+#   track <project>[/<task>] [<time>] # add a project entry at a given time (defaults to now)
+#   track untrack <id>                # remove project entry by id
+#   track                             # show help and projects
+#   track ls [<start> [<end>]]        # show report for period of time (defaults to todays)
+#
 # Example:
-#   track init          # initialize db
-#   track auto          # start tracking
-#   track ls            # show log
-#   track "my project"  # switch to "my project"
-#   track projects      # list projects
-#   track untrack 3     # remove project entry with id 3
+#   track ls                            # show log
+#   track ls 2015-08 2015-09-28         # show log from 2015-08-01 until 2015-09-28
+#   track "my project"                  # switch to "my project"
+#   track "my project" 2015-09-28T11:13 # switch to "my project" on 2015-09-28 at 11:13
+#   track projects 2015-10 20           # show last 20 projects since 2015-10-01
+#   track untrack 3                     # remove project entry with id 3
+#
+##
+#
+# TODO:
+#   track rename 3 "other project"      # rename project 3 to "other project"
 #
 ##
 # Copyright (c) Martin Sigloch <copyright@f0i.de>
@@ -32,6 +46,8 @@ end
 
 def track_workspace name=nil, time=nil
   time ||= Time.now
+  pid = `pgrep -f "slock"`.split("\n").first.to_i
+  name ||= "slock" if pid > 0
   name ||= `get-awesome-workspace`.strip
   db.execute "INSERT INTO workspaces(name, start) VALUES (?, ?)", [name, time_to_s(time)]
   puts name
@@ -62,29 +78,48 @@ def report since=nil, endtime=nil
 
   puts "Time #{since} - #{endtime}:"
 
-  by_day(since, endtime).each do |x|
-    seconds = x[1] * 15
-    hours = seconds / (60*60)
-    seconds %= (60*60)
-    minutes = seconds / 60
-    seconds %= 60
+  times = by_day(since, endtime)
+
+  times = times.map do |x|
     space = 8 - x[0].length
     space = space > 0 ? (" " * space) : ""
-    print " ", x[0], ": ", space, hours, ":", minutes, ":", seconds, "\n"
+    seconds = x[1] * 15
+    out = seconds_to_hms(seconds).merge(workspace: "#{x[0]}#{space}")
+    out
   end
+
+  times = times.each do |x|
+    print x[:workspace], " "
+    puts hms_to_s x
+  end
+  print "no slock "
+  puts hms_to_s seconds_to_hms times.map{|x| x[:workspace].strip == "slock" ? 0 : x[:seconds]}.reduce(:+)
+end
+
+def seconds_to_hms seconds
+  hour = seconds / (60*60)
+  second = seconds % (60*60)
+  minute = second / 60
+  second %= 60
+  {seconds: seconds, second: second, minute: minute, hour: hour}
+end
+
+def hms_to_s x
+  "%3d:%2d:%2d" % [x[:hour], x[:minute], x[:second]]
 end
 
 def untrack_project id
   db.execute "DELETE FROM projects WHERE id = ?", id
 end
 
-def projects since=nil
+def projects since=nil, limit=nil
   since ||= Time.now.strftime "%Y-%m-%d"
-  ps = db.execute "SELECT start, name, id FROM projects WHERE SUBSTR(start, 1, #{since.length}) >= ? ORDER BY start DESC", since
+  limit ||= 1000
+  ps = db.execute "SELECT start, name, id FROM projects WHERE SUBSTR(start, 1, #{since.length}) >= ? ORDER BY start DESC LIMIT #{limit.to_i}", since
 end
 
-def list_projects since=nil
-  projects(since).each do |p|
+def list_projects since=nil, limit=nil
+  projects(since, limit).each do |p|
     print p[2], ": ", p[0], ": ", p[1], "\n"
   end
 end
@@ -116,6 +151,10 @@ if ARGV.empty?
     break if line.strip == "" || line == "##"
     puts line.gsub /^# ?/, "" unless line.start_with? "#!"
   end
+  puts "latest 20 projects:"
+  ARGV[0] = "projects"
+  ARGV[1] = ""
+  ARGV[2] = 20
 end
 
 command = ARGV[0]
@@ -132,7 +171,7 @@ when "import"
 when "ls"
   report ARGV[1], ARGV[2]
 when /^project/
-  list_projects ARGV[1]
+  list_projects ARGV[1], ARGV[2]
 when "auto"
   loop do
     begin
@@ -150,7 +189,7 @@ when "untrack"
   if STDIN.readline.strip == "YES"
     untrack_project ARGV[1]
     puts "remaining projects:"
-    list_projects ""
+    list_projects "", 40
   else
     puts "canceled"
   end

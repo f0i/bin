@@ -19,4 +19,4 @@ Some files have a different licence which will be stated at the beginnig of each
 
 # Contribution
 
-Please open an issue or pull request on GitHub.
+For any kind of issue (including vulnerabilities), please open an issue or pull request on GitHub.

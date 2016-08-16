@@ -4,6 +4,18 @@
 
 This repository contains several scripts to help with basic tasks.
 
+# Installation
+
+Clone this repository to a directory you can access and execute files in.
+
+    $ git clone https://github.com/f0i/bin ~/bin
+
+Add this repository to your `$PATH`.
+
+    $ export PATH=$PATH:$HOME/bin
+
+Optionaly you can add this line to your `~/.bashrc`
+
 # Documentation and usage
 
 Most of the files start with a short description of what they do and how to use them.

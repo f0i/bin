@@ -14,7 +14,13 @@ Add this repository to your `$PATH`.
 
     $ export PATH=$PATH:$HOME/bin
 
-Optionaly you can add this line to your `~/.bashrc`
+Optionaly you can add this line to your `~/.bashrc` to make it permanent.
+
+# Update
+
+Use `git pull` inside of the directory.
+
+    $ cd ~/bin && git pull
 
 # Documentation and usage
 

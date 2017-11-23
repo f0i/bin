@@ -5,6 +5,7 @@
 # example:
 #   md index
 #   md f0i mdstart
+#   md --help
 #
 ##
 # Copyright (c) Martin Sigloch <copyright@f0i.de>
@@ -40,6 +41,14 @@ case "$1" in
     ;;
   "push")
     git push
+    ;;
+  "publish"|"deploy")
+    ssh f0i "cd /var/www/servers/projects.f0i.de/pages/ && git pull"
+    ;;
+  "--help"|"help")
+    echo "usage:"
+    echo " md [<category>] <name>"
+    echo " md ls|commit|deploy|help"
     ;;
   *)
     mkdir -p `dirname $file` \

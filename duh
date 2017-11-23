@@ -26,7 +26,7 @@ ls $hidden > /dev/null 2>&1 || hidden=""
   && (du -hs $hidden * ; echo -e "\n--------\n")
 
 
-du -hs $hidden * \
+du -hs -- "$hidden" * \
   | sort -h
 du -hs .
 

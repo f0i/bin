@@ -9,7 +9,13 @@
 # This code and information are provided without warranty of any kind.
 ##
 
-for i in `seq 0 20`
+count=20
+if [ "$1" != "" ]
+then
+  count=$1
+fi
+
+for i in `seq 0 "$count"`
 do
   echo
 done

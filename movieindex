@@ -1,6 +1,11 @@
 #!/bin/sh
 #
-# Create a html file with thumbs of all movies in a folder
+# Create a html file with thumbs of all movies in a folder.
+# The index file will be created in folder_idx/folder.html
+#
+# usage:
+#   movieindex 
+#   movieindex <folder>
 #
 ##
 # Based on pr0nidx.sh by Helmchyn 
@@ -19,7 +24,7 @@ bgcolor="#000000" # background of html page
 
 # Beginning of script
 if [ -z "$1" ];then
-  dir="movies/"
+  dir="./movies"
 else
   dir="$1"
 fi

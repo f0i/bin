@@ -3,13 +3,14 @@
 # Time tracking
 #
 # Usage:
-#   track init                        # initialize db
-#   track auto                        # start tracking
-#   track projects <since> <limit>    # list projects
-#   track <project>[/<task>] [<time>] # add a project entry at a given time (defaults to now)
-#   track untrack <id>                # remove project entry by id
-#   track                             # show help and projects
-#   track ls [<start> [<end>]]        # show report for period of time (defaults to todays)
+#   track init                         # initialize db
+#   track auto                         # start tracking
+#   track projects <since> <limit>     # list projects
+#   track <project>[/<task>] [<time>]  # add a project entry at a given time (defaults to now)
+#   track untrack <id>                 # remove project entry by id
+#   track                              # show help and projects
+#   track ls [<start> [<end>]]         # show report for period of time (defaults to todays)
+#   track report [<start> [<project>]] # show report for each project entry (defaults to today)
 #
 # Example:
 #   track ls                            # show log
@@ -72,11 +73,12 @@ def by_day since=nil, endtime=nil
   db.execute "SELECT name, count(id) FROM workspaces WHERE SUBSTR(start, 1, #{since.length}) >= ? AND SUBSTR(start, 1, #{endtime.length}) <= ? group by name", since, endtime
 end
 
-def report since=nil, endtime=nil
+def report since=nil, endtime=nil, options
   since ||= Time.now.strftime "%Y-%m-%d"
   endtime ||= Time.now.strftime "%Y-%m-%d"
+  options ||= {}
 
-  puts "Time #{since} - #{endtime}:"
+  puts "Time #{since} - #{endtime}:" unless options[:title] == false
 
   times = by_day(since, endtime)
 
@@ -97,6 +99,7 @@ def report since=nil, endtime=nil
 end
 
 def seconds_to_hms seconds
+  seconds ||= 0
   hour = seconds / (60*60)
   second = seconds % (60*60)
   minute = second / 60
@@ -108,14 +111,31 @@ def hms_to_s x
   "%3d:%2d:%2d" % [x[:hour], x[:minute], x[:second]]
 end
 
+
 def untrack_project id
   db.execute "DELETE FROM projects WHERE id = ?", id
 end
 
-def projects since=nil, limit=nil
+def projects since=nil, limit=nil, name=nil
   since ||= Time.now.strftime "%Y-%m-%d"
   limit ||= 1000
-  ps = db.execute "SELECT start, name, id FROM projects WHERE SUBSTR(start, 1, #{since.length}) >= ? ORDER BY start DESC LIMIT #{limit.to_i}", since
+  ps = db.execute "SELECT start, name, id FROM projects WHERE SUBSTR(start, 1, #{since.length}) >= ? AND name LIKE ? ORDER BY start DESC LIMIT #{limit.to_i}", since, "#{name}%"
+end
+
+
+def project_times since=nil, limit=nil, name=nil
+  prev = nil
+  name ||= ""
+  ps = projects(since, limit).reverse
+  ps << ["9999", "//", 9999]
+
+  ps.each do |p|
+    if prev and prev[1].start_with? name
+      print prev[2], ": ", prev[0], ": ", prev[1], "\n"
+      report prev[0], p[0], title: false
+    end
+    prev = p
+  end
 end
 
 def list_projects since=nil, limit=nil
@@ -161,17 +181,25 @@ command = ARGV[0]
 case command
 when "init"
   init
+
 when "dump"
   dump.each do |x|
     print x
     puts
   end
+
 when "import"
   import ARGV[1]
+
 when "ls"
   report ARGV[1], ARGV[2]
+
+when "report"
+  project_times ARGV[1], ARGV[2], ARGV[3]
+
 when /^project/
   list_projects ARGV[1], ARGV[2]
+
 when "auto"
   loop do
     begin
@@ -184,6 +212,7 @@ when "auto"
     delay = 15 - (Time.now.to_i % 15)
     sleep delay
   end
+
 when "untrack"
   print "type YES to delete project ", ARGV[1], ": "
   if STDIN.readline.strip == "YES"
@@ -193,6 +222,7 @@ when "untrack"
   else
     puts "canceled"
   end
+
 else
   time = Time.parse ARGV[1] if ARGV[1]
   track_project ARGV[0], time

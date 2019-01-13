@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+cd ~/.screenlayout/ && "./$1.sh"

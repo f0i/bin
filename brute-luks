@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+file="/tmp/wdheader"
+wordlist="/tmp/wordlist"
+
+IFS=$'\n'
+i=0
+offset=0
+
+for line in `cat $wordlist`
+do
+  let i=i+1
+  if [ $offset -gt $i ]
+  then
+    continue
+  fi
+
+  echo $i
+  (echo "$line" | cryptsetup luksOpen --test-passphrase $file 2> /dev/null )\
+    && (echo found password: "$line" | tee -a /tmp/brute) \
+    && exit 0
+done
+
+echo "No password found"
+exit 1

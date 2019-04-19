@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+. ~/.nas
+
+
+wol $NAS_MAC
+
+while not ssh $NAS_USER@$NAS_IP true; do wol $NAS_MAC; sleep 2; done

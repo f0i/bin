@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+. ~/.nas
+
+ssh $NAS_USER@$NAS_IP "sync"
+ls "$NAS_MOUNT/borg" && echo "NAS is still mounted..." && exit 1
+timeout 5 ssh $NAS_USER@$NAS_IP "echo mem > /sys/power/state"
+

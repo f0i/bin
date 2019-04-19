@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+. ~/.nas
+
+sshfs $NAS_USER@$NAS_IP:/mnt/qnap "$NAS_MOUNT" -C -o allow_other

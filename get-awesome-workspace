@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cat <<'EOF' | awesome-client | sed 's/[^"]*.\(.*\)"[^"]*/\1/' 
 

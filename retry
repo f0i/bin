@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Retry a command until it succeeds
 #
@@ -32,6 +32,7 @@ do
   echo
   echo "> try:" "$@"
   echo
+  sleep .5
 
   if [[ "$1" =~ ^[0-9]+$ ]]
   then

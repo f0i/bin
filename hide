@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Add lots of newlines to clear terminal scrollback buffer
 #

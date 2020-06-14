@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 
-file="/tmp/wdheader"
-wordlist="/tmp/wordlist"
+if [ $# -lt 1 ]
+then
+  echo "usage:" "$0" "<device> <wordlist>"
+  exit 1
+fi
+
+file=$1
+wordlist=$2
 
 IFS=$'\n'
 i=0
 offset=0
 
-for line in `cat $wordlist`
+while read -u 10 line
 do
   let i=i+1
   if [ $offset -gt $i ]
@@ -15,11 +21,11 @@ do
     continue
   fi
 
-  echo $i
+  echo "$i"
   (echo "$line" | cryptsetup luksOpen --test-passphrase $file 2> /dev/null )\
     && (echo found password: "$line" | tee -a /tmp/brute) \
     && exit 0
-done
+done 10< $wordlist
 
 echo "No password found"
 exit 1

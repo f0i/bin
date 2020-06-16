@@ -32,7 +32,7 @@ case "$1" in
   "us" | \
   "unmount-sleep")
     fusermount -u "$NAS_MOUNT" \
-    && ~/bin/qnap/sleep
+      && ~/bin/qnap/sleep
     ;;
   "unlock")
     scp $NAS_KEY $NAS_USER@$NAS_IP:/tmp/qnap.key \

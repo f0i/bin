@@ -4,3 +4,4 @@ export NAS_IP=192.168.1.123
 export NAS_USER=root
 export NAS_MAC="00:11:22:33:44:55"
 export NAS_MOUNT="/path/to/mount"
+export NAS_KEY="/path/to/keyfile"

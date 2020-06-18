@@ -23,11 +23,10 @@
 ls $hidden > /dev/null 2>&1 || hidden=""
 
 [[ "$1" == \-v* ]] \
-  && (du -hs $hidden * ; echo -e "\n--------\n")
+  && (du -hsc $hidden * ; echo -e "\n--------\n")
 
 
-du -hs -- $hidden * \
+du -hsc -- $hidden * \
   | sort -h
 
-du -hs .
 

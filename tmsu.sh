@@ -7,11 +7,37 @@
 # * rlwrap
 # * mplayer
 #
+# Init
+#   tmsu init # initialize tmsu
+#
 # Example:
-#   tmsu # show all untagged files
-#   tmsu re # show same list of files again
-#   tmsu "summer" # show all files containing the tag "summer"
-#   tmsu "year < 2000" # show all files containing the tag "year" with a value smaller than 2000
+#   tmsu.sh # show all untagged files
+#   tmsu.sh re # show same list of files again
+#   tmsu.sh "summer" # show all files containing the tag "summer"
+#   tmsu.sh "year < 2000" # show all files containing the tag "year" with a value smaller than 2000
+#
+# Interaction:
+#   $ tmsu.sh                    <-- shell command
+#   Files: 1 pl/tmsu.pl
+#
+#   -----------------
+#   45M	./test/testvideo.mkv
+#   Tags (blank to skip):
+#   re                           <-- User input: "re", "repeat" or "again" to play file again, "wq" to exit
+#
+#   -----------------
+#   45M	./test/testvideo.mkv
+#   Tags (blank to skip):
+#   music year=2020              <-- User input: tags seperated by space, values for tags with "=".  Prefix with "rm " or "untag " to remove tags
+#   tmsu: new tag 'music'
+#   tmsu: new tag 'year'
+#   tmsu: new value '2020'
+#
+#   -----------------
+#   45M	./test/testvideo.mkv
+#   music  year=2020
+#   Tags (blank to skip):
+#                                <-- Press return key to go to next file
 #
 ##
 # Copyright (c) Martin Sigloch <copyright@f0i.de>
@@ -29,11 +55,20 @@ else
   query="files $*"
 fi
 
+if [[ "$1" == "init" ]]
+then
+  ask "Init tmsu and create ./pl/ directory" \
+    && tmsu init \
+    && mkdir -p pl \
+    && touch '.tmsu/history'
+  exit $?
+fi
+
 if [[ "$1" != "re" ]]
 then
   # run new query, filter videos, shuffle and save as playlist
   tmsu $query \
-    | grep -i -e "mp4$" -e "flv$" -e "mpg$" -e "avi$" -e "wmv$" -e "webm$" -e "mov$" \
+    | grep -i -e "mp4$" -e "flv$" -e "mpg$" -e "avi$" -e "wmv$" -e "webm$" -e "mov$" -e "mkv$" \
     | sort --random-sort \
     > pl/tmsu.pl
     # other options to order files:
@@ -89,7 +124,7 @@ do
     
     IFS="$ofs"
     #read tags
-    chown $USER .tmsu/history
+    chown $USER .tmsu/history # hack to prevent permision errors
     tags=$(rlwrap -H .tmsu/history --break-chars=";" -f .tmsu/tags -o cat )
 
     case "$tags" in

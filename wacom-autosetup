@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # 
 # Denilson Sa
 # https://bitbucket.org/denilsonsa/small_scripts/src/31cfffd4e456eff2a561c64784d6274b3561a07f/xsetwacom_my_preferences.sh

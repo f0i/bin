@@ -36,7 +36,7 @@ case "$1" in
     ;;
   "unlock")
     scp $NAS_KEY $NAS_USER@$NAS_IP:/tmp/qnap.key \
-      && ssh $NAS_USER@$NAS_IP "cryptsetup -v luksOpen /dev/vg1/lv1 decrypt --key-file=/tmp/qnap.key ; rm /tmp/qnap.key ; mount /dev/mapper/decrypt /mnt/qnap"
+      && ssh $NAS_USER@$NAS_IP "mkdir -p /mnt/qnap; cryptsetup -v luksOpen /dev/vg1/lv1 decrypt --key-file=/tmp/qnap.key ; rm /tmp/qnap.key ; mount /dev/mapper/decrypt /mnt/qnap"
     ;;
   "lock")
     ssh  $NAS_USER@$NAS_IP "sync && umount /mnt/qnap"

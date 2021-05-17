@@ -3,11 +3,11 @@
 # Find video files and update tmsu tags for these files
 #
 # Dependencies
-# * tmsu
-# * rlwrap
-# * mplayer
+# * tmsu     for managing taggs
+# * rlwrap   for tab completion
+# * mplayer  for playing media
 #
-# Init
+# Init:
 #   tmsu init # initialize tmsu
 #
 # Example:
@@ -81,6 +81,8 @@ then
     # deterministic shuffle:
     #| sort --random-sort --random-source=/dev/zero \
 
+  echo "query: $query" >> pl/query
+
 elif [[ "$2" == "shuffle" ]]
 then
   # shuffle playlist from previous query
@@ -88,6 +90,7 @@ then
 fi
 
 # print file count
+tail -n 1 pl/query
 echo -n "Files: "
 wc -l pl/tmsu.pl
 
@@ -97,6 +100,8 @@ sqlite3 .tmsu/db  "select count(*), tag.name, value.name from file_tag inner joi
   | grep -v "|height|" \
   | grep -v "|duration|" \
   | grep -v "|size|" \
+  | grep -v "|time|" \
+  | grep -v "|date|" \
   | sort -h \
   | sed "s/^[0-9]*|//" | sed "s/|$//" | sed "s/|/=/" \
   | cat > "./.tmsu/tags"

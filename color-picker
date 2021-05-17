@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Show a gtk color picker and print color value to stdout.
+# Show a gtk color picker and print the selected color value to stdout.
 #
 # Example:
 #   ./color-picker

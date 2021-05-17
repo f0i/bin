@@ -31,5 +31,5 @@ done
 
 echo "Scanning $file"
 
-scanimage -d plustek:libusb:$(lsusb | grep -i scan | sed "s/Bus.\([0-9]*\).Device.\([0-9]*\).*/\1:\2/") -x 215 -y 297 --format=jpeg --resolution=300 \
+scanimage -d plustek:libusb:$(lsusb | grep -i scan | head -n 1 | sed "s/Bus.\([0-9]*\).Device.\([0-9]*\).*/\1:\2/") -x 215 -y 297 --format=jpeg --resolution=300 \
   | convert - -quality 50 "$file"

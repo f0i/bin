@@ -6,6 +6,7 @@
 # * tmsu     for managing taggs
 # * rlwrap   for tab completion
 # * mplayer  for playing media
+# * wq       for clearing the console (optional)
 #
 # Init:
 #   tmsu init # initialize tmsu
@@ -16,17 +17,26 @@
 #   tmsu.sh "summer" # show all files containing the tag "summer"
 #   tmsu.sh "year < 2000" # show all files containing the tag "year" with a value smaller than 2000
 #
+#  Tag commands:
+#    "": go to next video (aliases: "n", "next", ">")
+#    "re": replay video (aliases: "repeat", "again")
+#    "back": go to previous video (aliases: "b", "<", "p", "prev")
+#    "goto 123": go to video 123. exit if number doesn't exist
+#    "wq": execute the shell command wq and exit
+#    "rm foo bar": remove the tags "foo" and "bar" from the last played file 
+#    anything else will be stored as tags for the last played file
+#
 # Interaction:
 #   $ tmsu.sh                    <-- shell command
 #   Files: 1 pl/tmsu.pl
 #
 #   -----------------
-#   45M	./test/testvideo.mkv
+#   1/5 45M  ./test/testvideo.mkv
 #   Tags (blank to skip):
 #   re                           <-- User input: "re", "repeat" or "again" to play file again, "wq" to exit
 #
 #   -----------------
-#   45M	./test/testvideo.mkv
+#   1/5 45M  ./test/testvideo.mkv
 #   Tags (blank to skip):
 #   music year=2020              <-- User input: tags seperated by space, values for tags with "=".  Prefix with "rm " or "untag " to remove tags
 #   tmsu: new tag 'music'
@@ -34,10 +44,15 @@
 #   tmsu: new value '2020'
 #
 #   -----------------
-#   45M	./test/testvideo.mkv
+#   1/5 45M  ./test/testvideo.mkv
 #   music  year=2020
 #   Tags (blank to skip):
 #                                <-- Press return key to go to next file
+#   -----------------
+#   2/5 45M  ./test/othervideo.mp4
+#   movie  year=2021
+#   Tags (blank to skip):
+#   back
 #
 ##
 # Copyright (c) Martin Sigloch <copyright@f0i.de>
@@ -112,32 +127,41 @@ sqlite3 .tmsu/db  "select count(*), tag.name, value.name from file_tag inner joi
 
 mplayeroptions="-fs -screen 0"
 #mplayeroptions="$mplayeroptions -nosound"
-ofs=$IFS
-IFS=$'\n'
-for file in `cat pl/tmsu.pl`
+
+line=1
+lines=`wc -l pl/tmsu.pl | awk '{print $1;}'`
+
+while [ "$lines" -gt "$line" ]
 do
-  while true
-  do
-    echo
-    echo "-----------------"
-    du -hs "$file"
-    tmsu tags "$file"
+  file=`sed "${line}q;d" pl/tmsu.pl`
+  echo
+  echo "-----------------"
+  echo -n "$line/$lines: "
+  du -hs "$file"
+  tmsu tags "$file"
 
-    mplayer -really-quiet $mplayeroptions "$file"
-    
-    echo "Tags (blank to skip):"
-    
-    IFS="$ofs"
-    #read tags
-    chown $USER .tmsu/history # hack to prevent permision errors
-    tags=$(rlwrap -H .tmsu/history --break-chars=";" -f .tmsu/tags -o cat )
+  mplayer -really-quiet $mplayeroptions "$file"
 
-    case "$tags" in
-      "") break ;;
-      "wq") wq; exit;;
-      "repeat"|"again"|"re") continue ;;
-      "untag "*|"rm "*) tmsu untag "$file" $tags; continue ;;
-      *) tmsu tag "$file" $tags; continue ;;
-    esac
-  done
+  if [ "$line" -eq "0" ]
+  then
+    let line+=1
+    continue
+  fi
+
+  echo "Tags (blank to skip):"
+
+  chown $USER .tmsu/history # hack to prevent permision errors
+  tags=$(rlwrap -H .tmsu/history --break-chars=";" -f .tmsu/tags -o cat )
+
+
+
+  case "$tags" in
+    ""|">"|"next"|"n") let line+=1 ;;
+    "wq") wq ; exit ;;
+    "repeat"|"again"|"re") ;;
+    "untag "*|"rm "*) tmsu untag "$file" $tags ;;
+    "b"|"back"|"p"|"prev"|"<") let line-=1 ;;
+    "goto "*) line=$(echo " $tags" | awk '{print $2}') ;;
+    *) tmsu tag "$file" $tags ;;
+  esac
 done

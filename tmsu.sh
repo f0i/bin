@@ -131,7 +131,7 @@ mplayeroptions="-fs -screen 0"
 line=1
 lines=`wc -l pl/tmsu.pl | awk '{print $1;}'`
 
-while [ "$lines" -gt "$line" ]
+while [ "$lines" -ge "$line" ]
 do
   file=`sed "${line}q;d" pl/tmsu.pl`
   echo

@@ -13,6 +13,8 @@
 # This code and information are provided without warranty of any kind.
 ##
 
+set -euo pipefail
+
 if [ $# -lt 1 ]
 then
   echo "usage:" "$0" "<prefix> # will create <prefix>.p<i>.jpg"

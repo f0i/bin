@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # URL encode a string
 #
@@ -16,7 +16,7 @@
 
 unencoded="$*"
 length="${#unencoded}"
-echo $length
+#echo $length
 for (( i = 0; i < length; i++ )); do
   c="${unencoded:i:1}"
   case $c in

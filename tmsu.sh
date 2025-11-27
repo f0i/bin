@@ -61,6 +61,8 @@
 # This code and information are provided without warranty of any kind.
 ##
 
+set -e -o pipefail
+
 if [ "$#" -eq 0 ]; then
   # if query is empty, show all untagged files
   query=untagged

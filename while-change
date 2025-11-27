@@ -58,7 +58,7 @@ function check_stdin()
 }
 
 
-inotifywait -e close_write,moved_to,create -m "${watch[@]}" | while check_stdin
+inotifywait -e close_write,moved_to,create -m "${watch[@]}" -r | while check_stdin
   do
     if [ "$run" != 0 ]; then
       echo "> $*"
